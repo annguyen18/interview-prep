@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Java Junior Engineer Revision Portal</title>
+  <meta name="description" content="Technical interview preparation portal structured for backend software developers revising Core Java, Collections, Concurrency, JVM internals, and modern Java features." />
+  <meta property="og:title" content="Java Junior Engineer Revision Portal" />
+  <meta property="og:description" content="Technical interview preparation portal structured for backend software developers." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%231f6feb'/><text x='50' y='68' font-size='56' font-weight='bold' font-family='monospace' fill='white' text-anchor='middle'>J</text></svg>" />
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Highlight.js Night Owl Theme for Java Syntax Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/night-owl.min.css" />
+
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="brand-mark">J</div>
+        <div class="brand-text">
+          <span id="ui-brand-title" class="brand-title">Java Technical Revision Portal</span>
+          <span id="ui-brand-subtitle" class="brand-subtitle">Backend Engineering Interview Companion</span>
+        </div>
+      </div>
+
+      <nav class="header-actions" aria-label="Portal Actions">
+        <button id="btnLangToggle" class="btn btn-secondary" title="Switch language / Thay đổi ngôn ngữ">
+          <i data-lucide="languages" style="width: 16px; height: 16px;"></i>
+          <span id="langText">VI</span>
+        </button>
+
+        <button id="btnAiHelper" class="btn btn-secondary" title="View prompt template for AI-assisted question generation">
+          <i data-lucide="terminal" style="width: 16px; height: 16px;"></i>
+          <span id="ui-btn-prompt">Prompt Template</span>
+        </button>
+
+        <button id="btnAddQuestion" class="btn btn-primary">
+          <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+          <span id="ui-btn-add">Add Question</span>
+        </button>
+
+        <button id="btnExportJson" class="btn btn-secondary" title="Export study set as JSON">
+          <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+          <span id="ui-btn-export">Export JSON</span>
+        </button>
+
+        <label for="importFileInput" class="btn btn-secondary" title="Import JSON study set">
+          <i data-lucide="upload" style="width: 16px; height: 16px;"></i>
+          <span id="ui-btn-import">Import JSON</span>
+        </label>
+        <input type="file" id="importFileInput" accept=".json" style="display: none;" />
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Application Content -->
+  <main class="main-layout">
+
+    <!-- Progress Overview Row -->
+    <section class="stats-row" aria-label="Study Progress Statistics">
+      <div class="stat-item">
+        <span id="ui-lbl-total" class="stat-label">Total Questions</span>
+        <span id="statTotal" class="stat-value">0</span>
+      </div>
+      <div class="stat-item">
+        <span id="ui-lbl-mastered" class="stat-label">Mastered</span>
+        <span id="statMastered" class="stat-value mastered">0</span>
+      </div>
+      <div class="stat-item">
+        <span id="ui-lbl-review" class="stat-label">Needs Review</span>
+        <span id="statReview" class="stat-value review">0</span>
+      </div>
+    </section>
+
+    <!-- Controls & Filters Bar -->
+    <section class="controls-bar" aria-label="Search and Filter Controls">
+      <div class="search-field">
+        <i data-lucide="search" class="search-icon" style="width: 16px; height: 16px;"></i>
+        <input 
+          type="search" 
+          id="searchInput" 
+          class="input-text" 
+          placeholder="Search questions or code symbols (e.g. HashMap, equals, GC)..." 
+        />
+      </div>
+
+      <div class="filters-group">
+        <select id="categoryFilter" class="select-field" aria-label="Filter by Category">
+          <option value="All">All Categories</option>
+        </select>
+
+        <select id="masteryFilter" class="select-field" aria-label="Filter by Mastery Status">
+          <option id="ui-opt-all-status" value="All">All Statuses</option>
+          <option id="ui-opt-mastered" value="mastered">Mastered Only</option>
+          <option id="ui-opt-review" value="needs_review">Needs Review Only</option>
+          <option id="ui-opt-unrated" value="unrated">Unrated Only</option>
+        </select>
+
+        <button id="btnToggleAll" class="btn btn-secondary">
+          <i data-lucide="chevrons-down-up" style="width: 16px; height: 16px;"></i>
+          <span id="toggleAllText">Expand All</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Accordion Questions List Container -->
+    <section id="accordionContainer" class="accordion-list" aria-label="Interview Questions List">
+      <!-- Dynamically rendered accordion items go here -->
+    </section>
+
+  </main>
+
+  <!-- Add Question Modal Dialog -->
+  <dialog id="modalAddQuestion" aria-labelledby="modalAddTitle">
+    <div class="modal-header">
+      <h2 id="modalAddTitle" class="modal-title">Add Interview Question</h2>
+      <button type="button" class="btn-icon" data-close-modal="modalAddQuestion" aria-label="Close dialog">
+        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+      </button>
+    </div>
+    <form id="formAddQuestion">
+      <div class="modal-body">
+        <div class="form-group">
+          <label id="ui-frm-lbl-cat" class="form-label" for="inputCategory">Category</label>
+          <select id="inputCategory" class="form-select" required>
+            <option value="OOP & Core Java">OOP & Core Java</option>
+            <option value="Collections Framework">Collections Framework</option>
+            <option value="Concurrency & Multithreading">Concurrency & Multithreading</option>
+            <option value="JVM & Memory">JVM & Memory</option>
+            <option value="Java 8+ Features">Java 8+ Features</option>
+            <option value="Spring & Microservices">Spring & Microservices</option>
+            <option value="General Java">General Java</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label id="ui-frm-lbl-diff" class="form-label" for="inputDifficulty">Difficulty</label>
+          <select id="inputDifficulty" class="form-select" required>
+            <option value="Junior">Junior</option>
+            <option value="Mid-Junior">Mid-Junior</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label id="ui-frm-lbl-q" class="form-label" for="inputQuestion">Question Title</label>
+          <input 
+            type="text" 
+            id="inputQuestion" 
+            class="form-input" 
+            placeholder="e.g. What is the difference between Comparable and Comparator?" 
+            required 
+          />
+        </div>
+
+        <div class="form-group">
+          <label id="ui-frm-lbl-ans" class="form-label" for="inputAnswer">Detailed Answer (Supports Markdown & ```java Blocks)</label>
+          <textarea 
+            id="inputAnswer" 
+            class="form-textarea" 
+            placeholder="Provide technical answer. Supports Markdown lists, tables, and fenced ```java code blocks." 
+            required
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="ui-frm-btn-cancel" type="button" class="btn btn-secondary" data-close-modal="modalAddQuestion">Cancel</button>
+        <button id="ui-frm-btn-save" type="submit" class="btn btn-primary">Save Question</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- AI Prompt Helper Modal Dialog -->
+  <dialog id="modalAiPrompt" aria-labelledby="modalAiTitle">
+    <div class="modal-header">
+      <h2 id="modalAiTitle" class="modal-title">AI Question Generation Prompt Template</h2>
+      <button type="button" class="btn-icon" data-close-modal="modalAiPrompt" aria-label="Close dialog">
+        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p id="ui-prompt-desc" style="margin-bottom: 16px; color: var(--text-secondary); font-size: var(--text-sm); line-height: var(--leading-normal);">
+        Send this prompt to an LLM to generate structured Java technical questions adhering to the application schema. Save the generated JSON array to disk and use <strong>Import JSON</strong>.
+      </p>
+
+      <div id="promptText" class="prompt-box">Generate 5 Junior Java Developer technical interview questions about [TOPIC - e.g. Garbage Collection / Spring Boot] in the following strict bilingual JSON array format:
+[
+  {
+    "category": {
+      "en": "JVM & Memory",
+      "vi": "JVM & Bộ nhớ"
+    },
+    "difficulty": "Junior",
+    "question": {
+      "en": "Clear technical interview question in English?",
+      "vi": "Câu hỏi phỏng vấn kỹ thuật rõ ràng bằng tiếng Việt?"
+    },
+    "answer": {
+      "en": "Comprehensive explanation in English formatted in Markdown. Include fenced ```java code examples where relevant.",
+      "vi": "Giải thích chi tiết bằng tiếng Việt định dạng Markdown. Kèm theo ví dụ mã ```java nếu cần."
+    }
+  }
+]</div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" id="btnCopyPrompt" class="btn btn-primary">
+        <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
+        <span id="copyBtnText">Copy Prompt</span>
+      </button>
+    </div>
+  </dialog>
+
+  <!-- External CDN Dependencies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.1/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Application Entry Point (Ordered standard script imports) -->
+  <script src="js/defaultQuestions.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

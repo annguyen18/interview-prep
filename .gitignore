@@ -1,0 +1,32 @@
+# Maven build output
+target/
+*.jar
+*.war
+*.ear
+
+# Environment & Secrets
+.env
+*.env.local
+
+# Database files
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+*.db
+
+# Logs
+*.log
+logs/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.classpath
+*.project
+*.settings/
+
+# OS generated files
+.DS_Store
+Thumbs.db

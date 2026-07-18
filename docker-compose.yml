@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: interview-prep-backend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7070:7070"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PORT=7070
+      - APP_ENV=production
+      - DB_PATH=/app/data/interview_prep.db
+      - ALLOWED_ORIGINS=https://interview-prep.antnguyen.dev

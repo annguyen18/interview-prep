@@ -1,0 +1,20 @@
+[Unit]
+Description=Java Technical Revision Portal Backend Service (Javalin + SQLite)
+After=network.target
+
+[Service]
+Type=simple
+User=appuser
+WorkingDirectory=/var/www/interview-prep
+ExecStart=/usr/bin/java -Xms64m -Xmx128m -XX:+UseSerialGC -jar /var/www/interview-prep/target/java-prep-backend-1.0.0.jar
+Restart=always
+RestartSec=5
+EnvironmentFile=/var/www/interview-prep/.env
+
+# Security Sandbox Hardening
+ProtectSystem=full
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
