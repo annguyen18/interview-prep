@@ -54,15 +54,15 @@ public class App {
             // Register all API routes
             controller.registerRoutes(javalinConfig);
 
-            // Serve static frontend files from the project directory or classpath
+            // Serve static frontend files securely
             File parentIndex = new File("../index.html");
-            File localIndex = new File("index.html");
+            File localPublic = new File("public");
             if (parentIndex.exists()) {
                 javalinConfig.staticFiles.add("..", Location.EXTERNAL);
-                log.info("Serving frontend from external directory: ..");
-            } else if (localIndex.exists()) {
-                javalinConfig.staticFiles.add(".", Location.EXTERNAL);
-                log.info("Serving frontend from external directory: .");
+                log.info("Serving frontend from external development directory: ..");
+            } else if (localPublic.exists()) {
+                javalinConfig.staticFiles.add("public", Location.EXTERNAL);
+                log.info("Serving frontend from external production directory: public");
             } else {
                 javalinConfig.staticFiles.add("/public", Location.CLASSPATH);
                 log.info("Serving frontend from classpath: /public");

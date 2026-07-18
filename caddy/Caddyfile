@@ -1,0 +1,21 @@
+interview-prep.antnguyen.dev {
+    # Reverse proxy to the containerized Javalin app on its internal network port
+    reverse_proxy interview-prep-backend:7070
+
+    # Enable compression (gzip & zstd)
+    encode gzip zstd
+
+    # Secure HTTP Headers
+    header {
+        # Prevent page from being embedded in an iframe (Clickjacking defense)
+        X-Frame-Options "SAMEORIGIN"
+        # Prevent mime type sniffing
+        X-Content-Type-Options "nosniff"
+        # Enable XSS filter in older browsers
+        X-XSS-Protection "1; mode=block"
+        # Protect referrer info
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Force HTTPS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+}

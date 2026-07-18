@@ -65,28 +65,18 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
           script: |
-            sudo mkdir -p /var/www/interview-prep
-            sudo chown -R ${{ secrets.VPS_USER }}:${{ secrets.VPS_USER }} /var/www/interview-prep
+            mkdir -p /home/${{ secrets.VPS_USER }}/apps/interview-prep
 
-      - name: Inject GHCR image reference into docker-compose.yml
-        run: |
-          node -e "
-            const fs = require('fs');
-            let compose = fs.readFileSync('docker-compose.yml', 'utf8');
-            // Remove the build block
-            compose = compose.replace(/build:\s*\n\s*context:\s*\.\s*\n\s*dockerfile:\s*Dockerfile/g, 'image: ghcr.io/${{ env.IMAGE_NAME_LOWER }}:latest');
-            fs.writeFileSync('docker-compose.yml', compose, 'utf8');
-          "
-
-      - name: Copy deployment and frontend files to VPS
+      - name: Copy deployment files to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "index.html,styles.css,js/,docker-compose.yml,nginx.conf"
-          target: "/var/www/interview-prep"
+          source: "docker-compose.yml"
+          target: "/home/${{ secrets.VPS_USER }}/apps/interview-prep"
           rm: false
 
       - name: Deploy image and run container
@@ -95,13 +85,40 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
           script: |
-            cd /var/www/interview-prep
+            cd /home/${{ secrets.VPS_USER }}/apps/interview-prep
             # Login to GitHub Container Registry
             echo "${{ secrets.CR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             # Pull the new image from GHCR
             docker compose pull
             # Start the container
             docker compose up -d --remove-orphans
+            
+            # Wait and check container health status
+            echo "Waiting for container health status to be healthy..."
+            for i in {1..20}; do
+              STATUS=$(docker inspect --format='{{json .State.Health.Status}}' interview-prep-backend 2>/dev/null || echo "null")
+              echo "Health status: $STATUS"
+              if [ "$STATUS" = "\"healthy\"" ]; then
+                echo "Container is healthy!"
+                break
+              fi
+              if [ "$STATUS" = "\"unhealthy\"" ]; then
+                echo "Container is unhealthy!"
+                docker logs interview-prep-backend
+                exit 1
+              fi
+              sleep 2
+            done
+            
+            # Final verification
+            FINAL_STATUS=$(docker inspect --format='{{json .State.Health.Status}}' interview-prep-backend 2>/dev/null || echo "null")
+            if [ "$FINAL_STATUS" != "\"healthy\"" ]; then
+              echo "Container failed to report healthy status in time!"
+              docker logs interview-prep-backend
+              exit 1
+            fi
+            
             # Clean up old dangling images
-            docker image prune -f
+            docker image prune -f || true

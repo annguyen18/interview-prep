@@ -16,15 +16,15 @@ RUN mvn clean package -DskipTests -B
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Create folder for persistent SQLite database and set ownership to non-root user
-RUN mkdir -p /app/data && chown -R 1000:1000 /app
+# Create folders for persistent SQLite database and public static assets, then set ownership
+RUN mkdir -p /app/data /app/public && chown -R 1000:1000 /app
 
 # Copy the compiled fat JAR from build stage
 COPY --from=build /build/target/java-prep-backend-1.0.0.jar app.jar
 
-# Copy frontend static files as a fallback for standalone container usage
-COPY index.html styles.css ./
-COPY js/ ./js/
+# Copy frontend static files to the public assets directory
+COPY index.html styles.css /app/public/
+COPY js/ /app/public/js/
 RUN chown -R 1000:1000 /app
 
 # Set default production environment settings
